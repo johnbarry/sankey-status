@@ -1,0 +1,106 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['sankey','table','gauge']});
+      google.charts.setOnLoadCallback(sankeyChart);
+      google.charts.setOnLoadCallback(drawTable);
+      google.charts.setOnLoadCallback(drawGauges);
+
+
+      function sankeyChart() {
+        fetch('http://localhost:8080/chart/serviceflow')
+          .then( (x) => x.json())
+          .then( (x) => {
+                var data = new google.visualization.DataTable();
+                data.addColumn('string', 'From');
+                data.addColumn('string', 'To');
+                data.addColumn('number', 'Weight');
+                data.addColumn({type: 'string',role: 'style'});
+
+                // Sets chart options.
+                var options = {
+                  height: 600,
+                  width: 1200,
+                  sankey: {
+                    node: { label: { fontName: 'Times-Roman',
+                                     fontSize: 14,
+                                     bold: true } } },
+                };
+                data.addRows(x);
+
+                // Instantiates and draws our chart, passing in some options.
+                var chart = new google.visualization.Sankey(document.getElementById('sankey_basic'));
+                chart.draw(data, options);
+          });
+      }
+       function drawGauges() {
+
+        var data = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Memory', 80],
+          ['CPU', 55],
+          ['Network', 68]
+        ]);
+
+        var options = {
+          width: 140, height: 100,
+          redFrom: 90, redTo: 100,
+          yellowFrom:75, yellowTo: 90,
+          minorTicks: 5
+        };
+
+        var chart = new google.visualization.Gauge(document.getElementById('gauge_div'));
+
+        chart.draw(data, options);
+
+        setInterval(function() {
+          data.setValue(0, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(data, options);
+        }, 13000);
+        setInterval(function() {
+          data.setValue(1, 1, 40 + Math.round(60 * Math.random()));
+          chart.draw(data, options);
+        }, 5000);
+        setInterval(function() {
+          data.setValue(2, 1, 60 + Math.round(20 * Math.random()));
+          chart.draw(data, options);
+        }, 26000);
+      }
+      // setInterval(sankeyChart, 1000);
+      function drawTable() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Service (node)');
+        data.addColumn('string', 'Type');
+        data.addColumn('boolean', 'Status');
+        fetch('http://localhost:8080/chart/servicestatus')
+        .then( (x) => x.json())
+        .then( (x) => {
+           data.addRows(x);
+           var table = new google.visualization.Table(document.getElementById('applist'));
+           table.draw(data, {showRowNumber: true});
+         });
+      }
+    </script>
+</head>
+<body>
+<table>
+    <tr>
+        <td>
+            <div id="sankey_basic"></div>
+        </td>
+    </tr>
+    <tr/>
+    <tr>
+        <td>
+            <div id="applist"></div>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <div id="gauge_div"></div>
+        </td>
+    </tr>
+</table>
+</body>
+</html>
